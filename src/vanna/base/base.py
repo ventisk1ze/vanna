@@ -539,6 +539,8 @@ class VannaBase(ABC):
         try:
             sql = self.generate_sql(question=question)
         except Exception as e:
+            import traceback
+            traceback.format_exc()
             print(e)
             return None, None, None
 
@@ -673,6 +675,8 @@ class VannaBase(ABC):
                 print("Trying SHOW DATABASES")
                 df_databases = self.run_sql("SHOW DATABASES")
             except Exception as e:
+                import traceback
+                traceback.format_exc()
                 print(e)
                 return []
 
@@ -800,6 +804,8 @@ class VannaBase(ABC):
                     )
 
             except Exception as e:
+                import traceback
+                traceback.format_exc()
                 print(e)
 
         databases = self._get_databases()
@@ -865,9 +871,13 @@ class VannaBase(ABC):
                             )
 
                     except Exception as e:
+                        import traceback
+                        traceback.format_exc()
                         print(e)
                         pass
             except Exception as e:
+                import traceback
+                traceback.format_exc()
                 print(e)
 
         return plan

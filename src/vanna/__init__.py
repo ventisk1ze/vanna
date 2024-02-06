@@ -1438,6 +1438,8 @@ def ask(
     try:
         sql = generate_sql(question=question)
     except Exception as e:
+        import traceback
+        traceback.format_exc()
         print(e)
         return None, None, None, None
 

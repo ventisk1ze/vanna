@@ -9,7 +9,7 @@ class Mistral(VannaBase):
         if config is None:
             raise ValueError("For Mistral, config must be provided with an api_key and model")
         
-        if 'weights_path' not in config:
+        if 'weights_path' not in config.keys():
             if 'api_key' not in config:
                 raise ValueError("config must contain a Mistral api_key")
             
@@ -21,7 +21,8 @@ class Mistral(VannaBase):
             self.client = MistralClient(api_key=api_key)
             self.model = model
         else:
-            self.client = GPT4All(model_name=config['weights_path'])
+            self.config = config
+            self.client = GPT4All(model_name=config['weights_path'], device='gpu', verbose=True)
 
     def _extract_python_code(self, markdown_string: str) -> str:
         # Regex pattern to match Python code blocks
@@ -176,7 +177,7 @@ class Mistral(VannaBase):
         return sql
 
     def submit_prompt(self, prompt, **kwargs) -> str:
-        if 'weights_path' in self.config:
+        if 'weights_path' not in self.config:
             chat_response = self.client.chat(
                 model=self.model,
                 messages=prompt,
@@ -185,4 +186,7 @@ class Mistral(VannaBase):
             return chat_response.choices[0].message.content
         
         else:
-            return self.client.generate(prompt)
+            prompt_template = 'USER: {0}\nASSISTANT: '
+            final_prompt = prompt[0].content + prompt_template.format(prompt[1].content)
+            print(final_prompt)
+            return self.client.generate(final_prompt)
