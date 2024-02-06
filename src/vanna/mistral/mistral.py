@@ -1,5 +1,6 @@
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
+from gpt4all import GPT4All
 from ..base import VannaBase
 import re
 
@@ -7,17 +8,20 @@ class Mistral(VannaBase):
     def __init__(self, config=None):
         if config is None:
             raise ValueError("For Mistral, config must be provided with an api_key and model")
-
-        if 'api_key' not in config:
-            raise ValueError("config must contain a Mistral api_key")
         
-        if 'model' not in config:
-            raise ValueError("config must contain a Mistral model")
+        if 'weights_path' not in config:
+            if 'api_key' not in config:
+                raise ValueError("config must contain a Mistral api_key")
+            
+            if 'model' not in config:
+                raise ValueError("config must contain a Mistral model")
 
-        api_key = config['api_key']
-        model = config['model']
-        self.client = MistralClient(api_key=api_key)
-        self.model = model
+            api_key = config['api_key']
+            model = config['model']
+            self.client = MistralClient(api_key=api_key)
+            self.model = model
+        else:
+            self.client = GPT4All(model_name=config['weights_path'])
 
     def _extract_python_code(self, markdown_string: str) -> str:
         # Regex pattern to match Python code blocks
@@ -172,9 +176,13 @@ class Mistral(VannaBase):
         return sql
 
     def submit_prompt(self, prompt, **kwargs) -> str:
-        chat_response = self.client.chat(
-            model=self.model,
-            messages=prompt,
-        )
+        if 'weights_path' in self.config:
+            chat_response = self.client.chat(
+                model=self.model,
+                messages=prompt,
+            )
+            
+            return chat_response.choices[0].message.content
         
-        return chat_response.choices[0].message.content
+        else:
+            return self.client.generate(prompt)
